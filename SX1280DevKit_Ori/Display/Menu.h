@@ -19,6 +19,8 @@ Maintainer: Gregory Cristian & Gilbert Menth
 #include "DisplayDriver.h"
 #include "DmTouchCalibration.h"
 
+#define PRINT_DEBUG
+
 
 /*!
  * \brief TFT calibration structure.

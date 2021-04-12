@@ -60,6 +60,12 @@ extern uint8_t SemtechLogo[];
 Ticker CheckScreenTouch;
 volatile bool CheckScreenFlag = false;
 
+// 100 ms
+//Timer_1sec.attach_us( &TimerCb_1sec, 1000000);
+Ticker Timer_1sec;
+volatile bool Timer1secFlag = false;
+
+
 /*!
  * \brief This ticker give the rythme to refresh a page when continuous info
  * has to be printed in the same page.
@@ -269,6 +275,8 @@ static FreqBase CurrentFreqBase = FB100K;
 
 void CheckScreen( void );
 void CheckRefresh( void );
+// user timer 
+void TimerCb_1sec( void );
 void DebouncedScreen( void );
 void DrawActiveButton( uint8_t buttonId, uint8_t* text1, uint8_t* text2 );
 void ButtonChangeText( uint8_t buttonId, uint8_t* text1, uint8_t* text2 );
@@ -286,6 +294,9 @@ void MenuInit( void )
 
     // Page Utilities only for GPS and proximity sensor :
     CheckPageRefresh.attach_us( &CheckRefresh, 1000000 );   // every 1 s
+
+    // 1s timer
+    Timer_1sec.attach_us( &TimerCb_1sec, 1000000);
 }
 
 uint8_t MenuHandler( bool refresh )
@@ -299,6 +310,7 @@ uint8_t MenuHandler( bool refresh )
             ScreenBeenDebounced = true;
             CheckScreenFlag = false;
             DebouncedScreenTouch.attach_us( &DebouncedScreen, 150000 ); // every 150 ms
+            // 获取触摸点 button ID
             GraphObjectTouched( MenuObjects, GRAPH_OBJECTS_COUNT, &graphObjectTouched );
         }
     }
@@ -314,6 +326,22 @@ uint8_t MenuHandler( bool refresh )
             }
         }
     }
+
+
+//  CurrentPage == PAGE_RANGING_MASTER
+//  graphObjectTouched == BTN8_BORDER
+
+    // test timer
+    {
+        if(Timer1secFlag)
+        {
+            Timer1secFlag = false;
+            printf("1 sec timer test!\n\r");
+        }
+    
+    }
+
+
 
     if( refresh == true )
     {
@@ -512,9 +540,10 @@ uint8_t MenuHandler( bool refresh )
                 }
                 break;
 
+            // 测距 MASTER
             case PAGE_RANGING_MASTER:
                 if( graphObjectTouched == BTN0_BORDER )
-                {
+                {// "MASTER" 切换主从
                     Eeprom.EepromData.DemoSettings.Entity = SLAVE;
                     ButtonChangeText( BTN0_BORDER, ( uint8_t* )"   SLAVE", NULL );
                     Eeprom.EepromData.DemoSettings.HoldDemo = true;
@@ -523,14 +552,14 @@ uint8_t MenuHandler( bool refresh )
                     MenuSetPage( PAGE_RANGING_SLAVE );
                 }
                 else if( graphObjectTouched == BTN7_BORDER )
-                {
+                {// "EXIT" 返回主界面
                     StopDemoApplication( );
                     Eeprom.EepromData.DemoSettings.HoldDemo = true;
                     PreviousPage = START_PAGE; // clear Previous page
                     MenuSetPage( START_PAGE );
                 }
                 else if( graphObjectTouched == BTN8_BORDER )
-                {
+                {// "START" 开始测量
                     if( Eeprom.EepromData.DemoSettings.HoldDemo == true )
                     {
                         Eeprom.EepromData.DemoSettings.HoldDemo = false;
@@ -544,7 +573,7 @@ uint8_t MenuHandler( bool refresh )
                     }
                 }
                 else if( graphObjectTouched == BTN9_BORDER )
-                {
+                {// "SETTING"
                     Eeprom.EepromData.DemoSettings.HoldDemo = true;
                     // "SETTINGS" button can occure without "START"/"STOP" button
                     // also "SETTINGS" should stop the demo
@@ -1417,7 +1446,7 @@ uint8_t MenuHandler( bool refresh )
 }
 
 
-// 
+// 绘制页面
 void MenuSetPage( uint8_t page )
 {
     if( page != CurrentPage )
@@ -2485,6 +2514,11 @@ void CheckScreen( void )
 void CheckRefresh( void )
 {
     PageRefresh = true;
+}
+
+void TimerCb_1sec( void )
+{
+    Timer1secFlag = true;
 }
 
 void DebouncedScreen (void )
