@@ -331,15 +331,28 @@ uint8_t MenuHandler( bool refresh )
 //  CurrentPage == PAGE_RANGING_MASTER
 //  graphObjectTouched == BTN8_BORDER
 
-    // test timer
+//    // test timer
+//    {
+//        if(Timer1secFlag)
+//        {
+//            Timer1secFlag = false;
+//            printf("1 sec timer test!\n\r");
+//        }
+//    
+//    }
+
     {
-        if(Timer1secFlag)
+        if((CurrentPage == PAGE_RANGING_MASTER) && Timer1secFlag)
         {
             Timer1secFlag = false;
-            printf("1 sec timer test!\n\r");
-        }
+            graphObjectTouched = BTN8_BORDER;
+            printf("1 sec !\n\r");
     
+        }
     }
+
+
+
 
 
 
