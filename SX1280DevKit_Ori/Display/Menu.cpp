@@ -346,7 +346,7 @@ uint8_t MenuHandler( bool refresh )
         {
             Timer1secFlag = false;
             graphObjectTouched = BTN8_BORDER;
-            printf("1 sec !\n\r");
+//            printf("1 sec !\n\r");
     
         }
     }

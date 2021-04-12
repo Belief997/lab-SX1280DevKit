@@ -1082,8 +1082,10 @@ uint8_t RunDemoApplicationRanging( void )
         switch( DemoInternalState )
         {
             case APP_RANGING_CONFIG:
+//                printf( "MSTAR: APP_RANGING_CONFIG.\n\r" );
                 if( Eeprom.EepromData.DemoSettings.HoldDemo == false )
                 {
+                    static uint8_t AdrSW = 0;
                     Eeprom.EepromData.DemoSettings.RngStatus = RNG_INIT;
                     Eeprom.EepromData.DemoSettings.CntPacketTx++;
                     ModulationParams.PacketType = PACKET_TYPE_LORA;
@@ -1104,6 +1106,20 @@ uint8_t RunDemoApplicationRanging( void )
                     Eeprom.EepromData.DemoSettings.CntPacketRxOKSlave = 0;
                     MeasuredChannels  = 0;
                     CurrentChannel    = 0;
+                    AdrSW++;
+                    if(AdrSW % 3 == 0)
+                    {
+                        Eeprom.EepromData.DemoSettings.RngAddress = 0x10000000;
+                    }
+                    else if(AdrSW % 3 == 1)
+                    {
+                        Eeprom.EepromData.DemoSettings.RngAddress = 0x32100000;
+                    }
+                    else
+                    {
+                        Eeprom.EepromData.DemoSettings.RngAddress = 0x20012301;
+                    }
+                    
                     Buffer[0] = ( Eeprom.EepromData.DemoSettings.RngAddress >> 24 ) & 0xFF;
                     Buffer[1] = ( Eeprom.EepromData.DemoSettings.RngAddress >> 16 ) & 0xFF;
                     Buffer[2] = ( Eeprom.EepromData.DemoSettings.RngAddress >>  8 ) & 0xFF;
@@ -1118,6 +1134,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RNG:
+//                printf( "MSTAR: APP_RNG.\n\r" );
                 if( SendNext == true )
                 {
                     SendNext = false;
@@ -1184,6 +1201,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RANGING_DONE:
+//                printf( "MSTAR: APP_RANGING_DONE.\n\r" );
                 TX_LED = 0;
                 RawRngResults[RngResultIndex] = Radio.GetRangingResult( RANGING_RESULT_RAW );
                 RawRngResults[RngResultIndex] += Sx1280RangingCorrection::GetRangingCorrectionPerSfBwGain(
@@ -1198,17 +1216,20 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RANGING_TIMEOUT:
+//                printf( "MSTAR: APP_RANGING_TIMEOUT.\n\r" );
                 TX_LED = 0;
                 DemoInternalState = APP_RNG;
                 break;
 
             case APP_RX:
+//                printf( "MSTAR: APP_RX.\n\r" );
                 RX_LED = 0;
                 if( Eeprom.EepromData.DemoSettings.RngStatus == RNG_INIT )
                 {
                     Radio.GetPayload( Buffer, &BufferSize, BUFFER_SIZE );
                     if( BufferSize > 0 )
                     {
+//                        printf( "MSTAR: BS %d.\n\r",  BufferSize);
                         Eeprom.EepromData.DemoSettings.RxTimeOutCount = 0;
                         Eeprom.EepromData.DemoSettings.RngStatus = RNG_PROCESS;
                         Eeprom.EepromData.DemoSettings.RngFei = ( double )( ( ( int32_t )Buffer[4] << 24 ) | \
@@ -1252,6 +1273,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_TX:
+//                printf( "MSTAR: APP_TX.\n\r" );
                 TX_LED = 0;
                 if( Eeprom.EepromData.DemoSettings.RngStatus == RNG_INIT )
                 {
@@ -1266,6 +1288,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RX_TIMEOUT:
+//                printf( "MSTAR: APP_RX_TIMEOUT.\n\r" );
                 RX_LED = 0;
                 Eeprom.EepromData.DemoSettings.RngStatus = RNG_TIMEOUT;
                 DemoInternalState = APP_RANGING_CONFIG;
@@ -1274,6 +1297,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RX_ERROR:
+//                printf( "MSTAR: APP_RX_ERROR.\n\r" );
                 RX_LED = 0;
                 DemoInternalState = APP_RANGING_CONFIG;
                 Eeprom.EepromData.DemoSettings.HoldDemo = true;
@@ -1281,6 +1305,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_TX_TIMEOUT:
+//                printf( "MSTAR: APP_TX_TIMEOUT.\n\r" );
                 TX_LED = 0;
                 DemoInternalState = APP_RANGING_CONFIG;
                 Eeprom.EepromData.DemoSettings.HoldDemo = true;
@@ -1288,6 +1313,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_IDLE: // do nothing
+//                printf( "MSTAR: APP_IDLE.\n\r" );
                 break;
 
             default:
@@ -1301,6 +1327,7 @@ uint8_t RunDemoApplicationRanging( void )
         switch( DemoInternalState )
         {
             case APP_RANGING_CONFIG:
+//                printf( "SLAVE: APP_RANGING_CONFIG.\n\r" );
                 Eeprom.EepromData.DemoSettings.RngStatus = RNG_INIT;
                 ModulationParams.PacketType = PACKET_TYPE_LORA;
                 PacketParams.PacketType     = PACKET_TYPE_LORA;
@@ -1323,6 +1350,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RNG:
+//                printf( "SLAVE: APP_RNG.\n\r" );
                 if( SendNext == true )
                 {
                     SendNext = false;
@@ -1387,17 +1415,20 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RANGING_DONE:
+//                printf( "SLAVE: APP_RANGING_DONE.\n\r" );
                 RX_LED = 0;
                 Eeprom.EepromData.DemoSettings.CntPacketRxOK++;
                 DemoInternalState = APP_RNG;
                 break;
 
             case APP_RANGING_TIMEOUT:
+//                printf( "SLAVE: APP_RANGING_TIMEOUT.\n\r" );
                 RX_LED = 0;
                 DemoInternalState = APP_RNG;
                 break;
 
             case APP_RX:
+                printf( "SLAVE: APP_RX.\n\r" );
                 RX_LED = 0;
                 if( Eeprom.EepromData.DemoSettings.RngStatus == RNG_INIT )
                 {
@@ -1437,6 +1468,7 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_TX:
+//                printf( "SLAVE: APP_TX.\n\r" );
                 TX_LED = 0;
                 if( Eeprom.EepromData.DemoSettings.RngStatus == RNG_INIT )
                 {
@@ -1474,21 +1506,25 @@ uint8_t RunDemoApplicationRanging( void )
                 break;
 
             case APP_RX_TIMEOUT:
+//                printf( "SLAVE: APP_RX_TIMEOUT.\n\r" );
                 RX_LED = 0;
                 DemoInternalState = APP_RANGING_CONFIG;
                 break;
 
             case APP_RX_ERROR:
+//                printf( "SLAVE: APP_RX_ERROR.\n\r" );
                 RX_LED = 0;
                 DemoInternalState = APP_RANGING_CONFIG;
                 break;
 
             case APP_TX_TIMEOUT:
+//                printf( "SLAVE: APP_TX_TIMEOUT.\n\r" );
                 TX_LED = 0;
                 DemoInternalState = APP_RANGING_CONFIG;
                 break;
 
             case APP_IDLE: // do nothing
+//                printf( "SLAVE: APP_IDLE.\n\r" );
                 if( Eeprom.EepromData.DemoSettings.CntPacketRxKOSlave > DEMO_RNG_CHANNELS_COUNT_MAX )
                 {
                     Eeprom.EepromData.DemoSettings.CntPacketRxKOSlave = 0;
@@ -1935,7 +1971,7 @@ uint8_t CheckDistance( void )
     uint16_t i;
 
 #ifdef PRINT_DEBUG
-    printf( "#id: %d", Eeprom.EepromData.DemoSettings.CntPacketTx );
+    printf( "#id:%d,", Eeprom.EepromData.DemoSettings.CntPacketTx );
 #endif
     if( RngResultIndex > 0 )
     {
@@ -1968,14 +2004,28 @@ uint8_t CheckDistance( void )
 
         if( median < 100 )
         {
-            printf("median: %f \n\r", median );
+//            printf("median: %f \n\r", median );
             // Apply the short range correction and RSSI short range improvement below 50 m
             displayRange = Sx1280RangingCorrection::ComputeRangingCorrectionPolynome(
                 ModulationParams.Params.LoRa.SpreadingFactor,
                 ModulationParams.Params.LoRa.Bandwidth,
                 median
             );
-            printf("Corrected range: %f \n\r", displayRange );
+            if(Eeprom.EepromData.DemoSettings.RngAddress == 0x10000000)
+            {
+//                printf("> A Corrected range: %f \n\r", displayRange );
+                printf("A:%f\n\r", displayRange );
+            }
+            else if(Eeprom.EepromData.DemoSettings.RngAddress == 0x32100000)
+            {
+//                printf("> B Corrected range: %f \n\r", displayRange );
+                printf("B:%f\n\r", displayRange );
+            }
+            else if(Eeprom.EepromData.DemoSettings.RngAddress == 0x20012301)
+            {
+//                printf("> B Corrected range: %f \n\r", displayRange );
+                printf("C:%f\n\r", displayRange );
+            }
             //displayRange = t0 + t1 * rssi + t2 * pow(rssi,2) + t3 * pow(rssi, 3) + t4 * median + t5 * pow(median,2) + t6 * pow(median, 3) + t7 * pow(median, 4) ;
             //printf("displayRange %f \n\r", displayRange );
 //            double correctedRange = 0;
@@ -2025,7 +2075,7 @@ uint8_t CheckDistance( void )
             }
         }
     }
-    printf( ", Rssi: %d, Zn: %3d, Zmoy: %5.1f, FEI: %d\r\n", Eeprom.EepromData.DemoSettings.RssiValue, j, displayRange, ( int32_t )Eeprom.EepromData.DemoSettings.RngFei );
+//    printf( ", Rssi: %d, Zn: %3d, Zmoy: %5.1f, FEI: %d\r\n", Eeprom.EepromData.DemoSettings.RssiValue, j, displayRange, ( int32_t )Eeprom.EepromData.DemoSettings.RngFei );
 
     return j;
 }
